@@ -1,0 +1,12 @@
+{
+  "name": "privitools-redaction",
+  "version": "1.0.0",
+  "description": "Browser-based PDF redaction that rasterizes pages so redacted text is actually removed from the file",
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pdf", "redaction", "privacy", "pii", "client-side", "gdpr"],
+  "peerDependencies": {
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.1.200"
+  }
+}
