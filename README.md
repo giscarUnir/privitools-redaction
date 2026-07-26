@@ -19,6 +19,22 @@ becomes an image. That means no more text selection and no more search on that p
 exchange, what you redacted is actually unrecoverable. The production UI warns about this
 and requires a visual review before export.
 
+## The Proof
+
+### 1. 100% Offline (No Server Uploads)
+Try it yourself: Open the [production tool](https://privitools.com), turn on "Offline Mode" in DevTools (or turn off your WiFi), and process a document. The entire PDF engine runs locally via a cached WebAssembly worker.
+
+![Offline Proof](offline.png) *(Note: Replace with your DevTools offline screenshot)*
+
+### 2. True Redaction vs Fake Black Boxes
+In standard tools, the text is just covered. In PriviTools, the page is rasterized. 
+
+**Fake Redaction:** You can highlight and copy the text hidden under the black box.
+![Before Redaction](antes.png) *(Note: Replace with your before screenshot)*
+
+**PriviTools Rasterization:** The text layer is destroyed. It is physically impossible to extract the text using `pdftotext` or by highlighting.
+![After Redaction](despues.png) *(Note: Replace with your after screenshot)*
+
 ## Files
 
 | File | What it does |
