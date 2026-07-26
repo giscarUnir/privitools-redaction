@@ -4,7 +4,7 @@
 // subyacente desaparece de verdad (el PDF resultante pierde la capa de texto: precio
 // de una redacción legalmente segura, por lo que la UI exige revisión visual).
 
-import { loadPdfJs, PdfError } from './pdf-loader';
+import { loadPdfJs, PdfError, opcionesDeDocumento } from './pdf';
 import { detectPii, type PiiKind, type PiiMatch } from './pii-detect';
 
 export interface RedactionBox {
@@ -19,7 +19,19 @@ interface TextItemLike { str: string; transform: number[]; width: number; height
 interface OcrWordLike { text: string; bbox: { x0: number; y0: number; x1: number; y1: number }; }
 interface OcrLineLike { words: OcrWordLike[]; }
 
-/** Mapea coincidencias PII dentro de un item de texto a cajas en coordenadas PDF (puro, testeable). */
+/**
+ * Mapea coincidencias PII dentro de un item de texto a cajas en coordenadas PDF
+ * (puro, testeable).
+ *
+ * La posición se estima repartiendo el ancho del fragmento entre sus caracteres, pero
+ * las fuentes de los PDF son de ancho variable: una "i" ocupa mucho menos que una "W".
+ * Con un margen ajustado, la caja empezaba tarde y dejaba a la vista el primer carácter
+ * del dato — el "4" de una Visa o la "X" de un NIE, que ya revelan de qué se trata.
+ *
+ * Por eso el margen es de un carácter completo a cada lado en lugar de un par de
+ * puntos: en una herramienta de censura, cubrir de más es un defecto estético y cubrir
+ * de menos es una filtración.
+ */
 export const matchesToBoxes = (
   item: TextItemLike,
   matches: PiiMatch[],
@@ -28,17 +40,21 @@ export const matchesToBoxes = (
 ): RedactionBox[] => {
   const [, , , , x, y] = [...item.transform];
   const fontH = item.height || Math.abs(item.transform[3]) || 10;
+  // Ancho aproximado de un carácter en fuentes proporcionales (~0,55 del cuerpo).
+  const margen = Math.max(fontH * 0.55, 3);
   return matches.map((m, i) => {
     const ratioStart = item.str.length > 0 ? m.index / item.str.length : 0;
     const ratioLen = item.str.length > 0 ? m.length / item.str.length : 1;
+    const inicio = x + item.width * ratioStart - margen;
     return {
       id: startId + i,
       page,
       kind: m.kind,
       value: m.value,
-      x: x + item.width * ratioStart - 2,
+      // Nunca se sale por la izquierda del fragmento original.
+      x: Math.max(x - margen, inicio),
       y: y - fontH * 0.3,
-      width: item.width * ratioLen + 4,
+      width: item.width * ratioLen + margen * 2,
       height: fontH * 1.4
     };
   });
@@ -91,7 +107,7 @@ export const scanPdfForPii = async (
   onProgress?: (page: number, total: number) => void
 ): Promise<{ boxes: RedactionBox[]; pageCount: number; source: 'text' | 'ocr' | 'mixed' }> => {
   const pdfjs = await loadPdfJs();
-  const doc = await pdfjs.getDocument({ data: bytes }).promise.catch(() => { throw new PdfError('unreadable'); });
+  const doc = await pdfjs.getDocument({ data: bytes, ...opcionesDeDocumento() }).promise.catch(() => { throw new PdfError('unreadable'); });
   const boxes: RedactionBox[] = [];
   let id = 1;
   let textPages = 0;
@@ -121,9 +137,9 @@ export const scanPdfForPii = async (
       ocrPages++;
       const scale = 2;
       const viewport = page.getViewport({ scale });
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
+      // Debe usar el helper: esta función se ejecuta dentro del worker de redacción,
+      // donde `document` no existe y `document.createElement` aborta la operación.
+      const canvas = createRenderCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
       const context = canvas.getContext('2d');
       if (!context) throw new PdfError('render-failed');
       await page.render({ canvas, canvasContext: context, viewport } as any).promise;
@@ -131,7 +147,9 @@ export const scanPdfForPii = async (
         const { createWorker } = await import('tesseract.js');
         ocrWorker = await createWorker(['spa', 'eng']);
       }
-      const result = await ocrWorker.recognize(canvas, {}, { text: true, blocks: true });
+      // Se le pasa un Blob y no el lienzo: tesseract.js acepta Blob en cualquier
+      // contexto, mientras que OffscreenCanvas no siempre lo admite dentro del worker.
+      const result = await ocrWorker.recognize(await canvasToJpeg(canvas), {}, { text: true, blocks: true });
       const lines = (result.data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((paragraph) => paragraph.lines));
       const pageHeight = viewport.height / scale;
       for (const line of lines) {
@@ -178,7 +196,7 @@ export const autoRedactPdf = async (
 ): Promise<Uint8Array> => {
   const pdfjs = await loadPdfJs();
   const { PDFDocument } = await import('pdf-lib');
-  const source = await pdfjs.getDocument({ data: bytes }).promise.catch(() => { throw new PdfError('unreadable'); });
+  const source = await pdfjs.getDocument({ data: bytes, ...opcionesDeDocumento() }).promise.catch(() => { throw new PdfError('unreadable'); });
   const target = await PDFDocument.create();
   const scale = 1.7;
   const byPage = new Map<number, RedactionBox[]>();

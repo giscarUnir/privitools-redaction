@@ -1,0 +1,88 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1125 >>
+stream
+BT
+/F2 18 Tf
+1 0 0 1 72 730 Tm
+(Ficha de cliente - DOCUMENTO DE PRUEBA) Tj
+/F1 10 Tf
+1 0 0 1 72 706 Tm
+(Datos ficticios generados para probar el detector de PII. No corresponden a) Tj
+/F1 10 Tf
+1 0 0 1 72 692 Tm
+(ninguna persona real.) Tj
+/F2 12 Tf
+1 0 0 1 72 650 Tm
+(Datos de contacto) Tj
+/F1 12 Tf
+1 0 0 1 72 626 Tm
+(Nombre: Juan Perez Gomez) Tj
+/F1 12 Tf
+1 0 0 1 72 606 Tm
+(Email: juan.perez@ejemplo.com) Tj
+/F1 12 Tf
+1 0 0 1 72 586 Tm
+(Telefono: 600 123 456) Tj
+/F1 12 Tf
+1 0 0 1 72 566 Tm
+(Email alternativo: contacto@empresa-ficticia.es) Tj
+/F2 12 Tf
+1 0 0 1 72 526 Tm
+(Datos bancarios) Tj
+/F1 12 Tf
+1 0 0 1 72 502 Tm
+(Tarjeta: 4539 1488 0343 6467) Tj
+/F1 12 Tf
+1 0 0 1 72 482 Tm
+(IBAN: ES91 2100 0418 4502 0005 1332) Tj
+/F2 12 Tf
+1 0 0 1 72 442 Tm
+(Identificacion) Tj
+/F1 12 Tf
+1 0 0 1 72 418 Tm
+(DNI: 12345678Z) Tj
+/F1 12 Tf
+1 0 0 1 72 398 Tm
+(NIE: X1234567L) Tj
+/F2 12 Tf
+1 0 0 1 72 358 Tm
+(Notas) Tj
+/F1 11 Tf
+1 0 0 1 72 334 Tm
+(Este parrafo no contiene datos sensibles y debe quedar intacto tras la) Tj
+/F1 11 Tf
+1 0 0 1 72 318 Tm
+(redaccion. Sirve para comprobar que la herramienta solo cubre lo detectado.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000251 00000 n 
+0000001428 00000 n 
+0000001498 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1573
+%%EOF

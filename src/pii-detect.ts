@@ -72,6 +72,25 @@ const DETECTORS: Detector[] = [
  * Escanea un texto y devuelve las coincidencias PII validadas, sin solapamientos
  * (una tarjeta detectada no vuelve a reportarse como teléfono).
  */
+/**
+ * Recorta una coincidencia demasiado larga hasta dar con la parte que sí valida.
+ *
+ * Los patrones de IBAN y tarjeta son necesariamente amplios (el formato cambia según
+ * el país y la separación en grupos es libre), así que son voraces y engullen lo que
+ * viene detrás. En "IBAN: ES91 2100 0418 4502 0005 1332 DNI: 12345678Z" el regex
+ * capturaba hasta el "DNI", mod-97 fallaba y el IBAN se perdía entero: en un documento
+ * real —donde siempre hay texto alrededor— no se detectaba ninguno.
+ */
+const recortarHastaValido = (valor: string, validar: (v: string) => boolean): string | null => {
+  if (validar(valor)) return valor;
+  const grupos = valor.split(/\s+/);
+  for (let n = grupos.length - 1; n >= 1; n--) {
+    const candidato = grupos.slice(0, n).join(' ');
+    if (validar(candidato)) return candidato;
+  }
+  return null;
+};
+
 export const detectPii = (text: string, kinds?: PiiKind[]): PiiMatch[] => {
   const active = kinds ? DETECTORS.filter((d) => kinds.includes(d.kind)) : DETECTORS;
   const matches: PiiMatch[] = [];
@@ -82,11 +101,17 @@ export const detectPii = (text: string, kinds?: PiiKind[]): PiiMatch[] => {
     detector.regex.lastIndex = 0;
     let m: RegExpExecArray | null;
     while ((m = detector.regex.exec(text)) !== null) {
-      const value = m[0].trim();
+      let value = m[0].trim();
+      // Se valida ANTES de mirar solapamientos: el recorte cambia dónde termina la
+      // coincidencia, y con el valor sin ajustar se reservaba de más.
+      if (detector.validate) {
+        const ajustado = recortarHastaValido(value, detector.validate);
+        if (!ajustado) continue;
+        value = ajustado;
+      }
       const start = m.index;
-      const end = m.index + value.length;
+      const end = start + value.length;
       if (overlaps(start, end)) continue;
-      if (detector.validate && !detector.validate(value)) continue;
       matches.push({ kind: detector.kind, value, index: start, length: value.length });
       taken.push([start, end]);
     }
