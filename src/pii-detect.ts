@@ -42,14 +42,14 @@ const DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE';
 
 /** DNI español: 8 dígitos + letra de control válida. */
 export const dniCheck = (value: string): boolean => {
-  const m = value.toUpperCase().match(/^(\d{8})([A-Z])$/);
+  const m = value.toUpperCase().replace('-', '').match(/^(\d{8})([A-Z])$/);
   if (!m) return false;
   return DNI_LETTERS[Number(m[1]) % 23] === m[2];
 };
 
 /** NIE español: X/Y/Z + 7 dígitos + letra de control. */
 export const nieCheck = (value: string): boolean => {
-  const m = value.toUpperCase().match(/^([XYZ])(\d{7})([A-Z])$/);
+  const m = value.toUpperCase().replace('-', '').match(/^([XYZ])(\d{7})([A-Z])$/);
   if (!m) return false;
   const prefix = { X: '0', Y: '1', Z: '2' }[m[1] as 'X' | 'Y' | 'Z'];
   return DNI_LETTERS[Number(prefix + m[2]) % 23] === m[3];
@@ -61,8 +61,8 @@ const DETECTORS: Detector[] = [
   { kind: 'email', regex: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g },
   { kind: 'iban', regex: /\b[A-Z]{2}\d{2}[ ]?(?:[A-Z0-9][ ]?){10,30}\b/g, validate: ibanCheck },
   { kind: 'card', regex: /\b(?:\d[ -]?){13,19}\b/g, validate: luhnCheck },
-  { kind: 'dni', regex: /\b\d{8}[A-Za-z]\b/g, validate: dniCheck },
-  { kind: 'nie', regex: /\b[XYZxyz]\d{7}[A-Za-z]\b/g, validate: nieCheck },
+  { kind: 'dni', regex: /\b\d{8}[-]?([A-Za-z])\b/g, validate: dniCheck },
+  { kind: 'nie', regex: /\b[XYZxyz]\d{7}[-]?([A-Za-z])\b/g, validate: nieCheck },
   { kind: 'ssn-us', regex: /\b\d{3}-\d{2}-\d{4}\b/g },
   // Teléfonos: internacional (+xx...) o nacional con separadores; mínimo 9 dígitos reales.
   { kind: 'phone', regex: /(?:\+\d{1,3}[ .-]?)?(?:\(?\d{2,4}\)?[ .-]?)\d{2,4}[ .-]?\d{2,4}(?:[ .-]?\d{2,4})?/g, validate: (v) => { const d = v.replace(/\D/g, ''); return d.length >= 9 && d.length <= 15; } }
