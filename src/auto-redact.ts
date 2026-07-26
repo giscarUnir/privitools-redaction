@@ -145,7 +145,11 @@ export const scanPdfForPii = async (
       await page.render({ canvas, canvasContext: context, viewport } as any).promise;
       if (!ocrWorker) {
         const { createWorker } = await import('tesseract.js');
-        ocrWorker = await createWorker(['spa', 'eng']);
+        ocrWorker = await createWorker(['spa', 'eng'], 1, {
+          workerPath: '/tesseract/worker.min.js',
+          corePath: '/tesseract/tesseract-core.wasm.js',
+          langPath: '/tesseract/lang-data',
+        });
       }
       // Se le pasa un Blob y no el lienzo: tesseract.js acepta Blob en cualquier
       // contexto, mientras que OffscreenCanvas no siempre lo admite dentro del worker.
