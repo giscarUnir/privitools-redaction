@@ -1,7 +1,7 @@
 # PDF redaction that actually removes the text
 
-The redaction and PII detection engine behind [PriviTools](https://privitools.com).
-Runs entirely in the browser. No server, no upload.
+A browser-based redaction and PII detection engine. Runs entirely client-side: no server,
+no upload.
 
 ## The problem
 
@@ -16,24 +16,24 @@ the file rather than covered up.
 
 **The tradeoff is real and worth stating plainly:** the page loses its text layer. It
 becomes an image. That means no more text selection and no more search on that page. In
-exchange, what you redacted is actually unrecoverable. The production UI warns about this
-and requires a visual review before export.
+exchange, what you redacted is actually unrecoverable. A production UI should warn about
+this and require a visual review before export.
 
-## The Proof
+## Verifying the claims
 
-### 1. 100% Offline (No Server Uploads)
-Try it yourself: Open the [production tool](https://privitools.com), turn on "Offline Mode" in DevTools (or turn off your WiFi), and process a document. The entire PDF engine runs locally via a cached WebAssembly worker.
+Both claims below are meant to be checked, not believed.
 
-![Offline Proof](assets/imag1.jpeg) *(Note: Replace with your DevTools offline screenshot)*
+### 1. Fully offline, nothing is uploaded
 
-### 2. True Redaction vs Fake Black Boxes
-In standard tools, the text is just covered. In PriviTools, the page is rasterized. 
+Load the engine, enable "Offline Mode" in DevTools (or turn off your WiFi) and process a
+document. The PDF pipeline runs locally through a cached WebAssembly worker. If it still
+works with the network disabled, nothing left the browser.
 
-**Fake Redaction:** You can highlight and copy the text hidden under the black box.
-![Before Redaction](assets/imag2.jpeg) *(Note: Replace with your before screenshot)*
+### 2. Real redaction, not a black box
 
-**PriviTools Rasterization:** The text layer is destroyed. It is physically impossible to extract the text using `pdftotext` or by highlighting.
-![After Redaction](assets/imag3.jpeg) *(Note: Replace with your after screenshot)*
+With a black rectangle you can highlight and copy the text underneath. After
+rasterization the text layer is destroyed: `pdftotext` returns nothing and there is
+nothing left to select.
 
 ## Files
 
@@ -48,10 +48,10 @@ are pure functions and testable without a DOM.
 
 ## Scope
 
-This is not the whole site — it's the part where the code determines whether your data is
-safe. Compression, merging, splitting and the UI live in a private repository. I'd rather
-publish the security-relevant code and say so, than claim the whole project is open when
-it isn't.
+This is the security-relevant part of a larger document-processing project: the code that
+determines whether your data is actually safe. Compression, merging, splitting and the UI
+are not included. I would rather publish the part that matters for security and say so,
+than claim the whole thing is open when it is not.
 
 ## Usage
 
@@ -74,4 +74,4 @@ formats outside Spain and Latin America.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
